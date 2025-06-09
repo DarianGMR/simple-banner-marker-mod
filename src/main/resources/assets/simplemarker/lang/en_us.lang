@@ -1,0 +1,3 @@
+# Messages
+simplemarker.marker.exists=Ya tienes un marcador en este mapa
+simplemarker.marker.created=Marcador creado: %s
