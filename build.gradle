@@ -1,14 +1,10 @@
 buildscript {
     repositories {
+        mavenLocal()
         mavenCentral()
-        maven {
-            name = "forge"
-            url = "https://maven.minecraftforge.net/"
-        }
-        maven {
-            name = "sonatype"
-            url = "https://oss.sonatype.org/content/repositories/snapshots/"
-        }
+        maven { url = 'https://files.minecraftforge.net/maven' }
+        maven { url = 'https://plugins.gradle.org/m2/' }
+        maven { url = 'https://oss.sonatype.org/content/repositories/snapshots/' }
     }
     dependencies {
         classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
@@ -21,29 +17,33 @@ version = "1.0"
 group = "com.dariangmr.simplemarker"
 archivesBaseName = "simple-banner-marker"
 
-sourceCompatibility = targetCompatibility = '1.8'
 compileJava {
     sourceCompatibility = targetCompatibility = '1.8'
 }
 
 minecraft {
-    version = "1.12.2-14.23.5.2855"
+    version = project.forgeVersion
     runDir = "run"
-    mappings = "stable_39"
-
-    // Agregar esto para asegurarnos de que use el cache correcto
+    mappings = project.mcpVersion
     makeObfSourceJar = false
-    useDepAts = true
+    // Agregar estas líneas
+    makeObfSourceJar = false
+
+    // Configuración de memoria
+    clientJvmArgs = ["-Xmx2G"]
+    serverJvmArgs = ["-Xmx2G"]
 }
 
-repositories {
-    mavenCentral()
-    maven {
-        name = "forge"
-        url = "https://maven.minecraftforge.net/"
+processResources {
+    inputs.property "version", project.version
+    inputs.property "mcversion", project.minecraft.version
+
+    from(sourceSets.main.resources.srcDirs) {
+        include 'mcmod.info'
+        expand 'version':project.version, 'mcversion':project.minecraft.version
     }
-}
 
-dependencies {
-    // Aquí puedes agregar otras dependencias si las necesitas
+    from(sourceSets.main.resources.srcDirs) {
+        exclude 'mcmod.info'
+    }
 }
