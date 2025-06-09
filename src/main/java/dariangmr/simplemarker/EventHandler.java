@@ -32,10 +32,12 @@ public class EventHandler {
                 if (player.world.isRemote) {
                     // Solo en el cliente, mostrar la GUI
                     NBTTagCompound markerData = new NBTTagCompound();
-                    // Obtener el color del estandarte usando los metadatos
                     markerData.setInteger("color", bannerStack.getMetadata());
-                    markerData.setDouble("x", player.posX);
-                    markerData.setDouble("z", player.posZ);
+                    // Convertir coordenadas del mundo a coordenadas del mapa
+                    double x = (player.posX - mapData.xCenter) / mapData.scale;
+                    double z = (player.posZ - mapData.zCenter) / mapData.scale;
+                    markerData.setDouble("x", x);
+                    markerData.setDouble("z", z);
 
                     Minecraft.getMinecraft().displayGuiScreen(new GuiMarkerName(player, bannerStack, markerData));
                 }
