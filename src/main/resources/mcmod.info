@@ -1,0 +1,10 @@
+[
+{
+  "modid": "simplemarker",
+  "name": "Simple Banner Marker",
+  "description": "Add simple banner markers to your maps!",
+  "version": "1.0",
+  "mcversion": "1.12.2",
+  "authorList": ["DarianGMR"]
+}
+]
