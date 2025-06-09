@@ -1,4 +1,4 @@
-package com.dariangmr.simplemarker;
+package dariangmr.simplemarker;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
