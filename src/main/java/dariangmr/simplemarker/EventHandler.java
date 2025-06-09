@@ -32,7 +32,8 @@ public class EventHandler {
                 if (player.world.isRemote) {
                     // Solo en el cliente, mostrar la GUI
                     NBTTagCompound markerData = new NBTTagCompound();
-                    markerData.setInteger("color", ((ItemBanner)bannerStack.getItem()).getColor().getDyeDamage());
+                    // Obtener el color del estandarte usando los metadatos
+                    markerData.setInteger("color", bannerStack.getMetadata());
                     markerData.setDouble("x", player.posX);
                     markerData.setDouble("z", player.posZ);
 
