@@ -5,6 +5,8 @@ import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.item.ItemMap;
+import net.minecraft.world.storage.MapData;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -46,7 +48,34 @@ public class GuiMarkerName extends GuiScreen {
             String name = this.nameField.getText();
             if (!name.isEmpty()) {
                 markerData.setString("name", name);
-                // Guardar el marcador y cerrar GUI
+
+                // Obtener el mapa del jugador
+                ItemStack mapStack = null;
+                if (player.getHeldItemMainhand().getItem() instanceof ItemMap) {
+                    mapStack = player.getHeldItemMainhand();
+                } else if (player.getHeldItemOffhand().getItem() instanceof ItemMap) {
+                    mapStack = player.getHeldItemOffhand();
+                }
+
+                if (mapStack != null) {
+                    MapData mapData = ((ItemMap)mapStack.getItem()).getMapData(mapStack, player.world);
+                    if (mapData != null) {
+                        // Crear el marcador en el mapa
+                        NBTTagCompound mapNbt = mapStack.getTagCompound();
+                        if (mapNbt == null) {
+                            mapNbt = new NBTTagCompound();
+                            mapStack.setTagCompound(mapNbt);
+                        }
+
+                        if (!mapNbt.hasKey("Markers")) {
+                            mapNbt.setTag("Markers", new NBTTagCompound());
+                        }
+                        NBTTagCompound markers = mapNbt.getCompoundTag("Markers");
+                        markers.setTag(name, markerData);
+                    }
+                }
+
+                // Cerrar GUI
                 this.mc.displayGuiScreen(null);
             }
         }
