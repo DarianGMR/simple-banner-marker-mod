@@ -8,6 +8,7 @@ import net.minecraft.item.ItemBanner;
 import net.minecraft.item.ItemMap;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.world.storage.MapData;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -76,9 +77,6 @@ public class GuiMarkerName extends GuiScreen {
     private void actionAccept() {
         String name = this.nameField.getText();
         if (!name.isEmpty()) {
-            markerData.setString("name", name);
-
-            // Obtener el mapa del jugador
             ItemStack mapStack = null;
             if (player.getHeldItemMainhand().getItem() instanceof ItemMap) {
                 mapStack = player.getHeldItemMainhand();
@@ -87,36 +85,43 @@ public class GuiMarkerName extends GuiScreen {
             }
 
             if (mapStack != null) {
-                // Guardar los datos del marcador en el mapa
-                if (!mapStack.hasTagCompound()) {
-                    mapStack.setTagCompound(new NBTTagCompound());
-                }
-                NBTTagCompound mapNbt = mapStack.getTagCompound();
+                MapData mapData = ((ItemMap)mapStack.getItem()).getMapData(mapStack, player.world);
+                if (mapData != null) {
+                    // Crear el marcador
+                    NBTTagCompound decorationNBT = new NBTTagCompound();
+                    String id = "banner_" + System.currentTimeMillis();
+                    decorationNBT.setString("id", id);
+                    decorationNBT.setByte("type", (byte)1); // Tipo banner
+                    decorationNBT.setByte("rot", (byte)0);
+                    decorationNBT.setInteger("x", markerData.getInteger("x"));
+                    decorationNBT.setInteger("z", markerData.getInteger("z"));
 
-                if (!mapNbt.hasKey("Decorations")) {
-                    mapNbt.setTag("Decorations", new NBTTagCompound());
-                }
-                NBTTagCompound decorations = mapNbt.getCompoundTag("Decorations");
+                    // Asegurarnos que el mapa tiene NBT
+                    if (!mapStack.hasTagCompound()) {
+                        mapStack.setTagCompound(new NBTTagCompound());
+                    }
 
-                // Crear nueva entrada para el marcador
-                NBTTagCompound decoration = new NBTTagCompound();
-                decoration.setString("id", "banner_" + System.currentTimeMillis());
-                decoration.setByte("type", (byte)markerData.getInteger("color"));
-                decoration.setDouble("x", markerData.getDouble("x"));
-                decoration.setDouble("z", markerData.getDouble("z"));
-                decoration.setString("name", name);
+                    // Obtener o crear la lista de decoraciones
+                    if (!mapStack.getTagCompound().hasKey("Decorations", 9)) {
+                        mapStack.getTagCompound().setTag("Decorations", new NBTTagList());
+                    }
 
-                // Agregar al mapa
-                decorations.setTag(name, decoration);
+                    // Agregar la decoración a la lista
+                    NBTTagList decorationsList = mapStack.getTagCompound().getTagList("Decorations", 10);
+                    decorationsList.appendTag(decorationNBT);
 
-                // Consumir el estandarte
-                ItemStack bannerStack = null;
-                if (player.getHeldItemMainhand().getItem() instanceof ItemBanner) {
-                    bannerStack = player.getHeldItemMainhand();
-                    bannerStack.shrink(1);
-                } else if (player.getHeldItemOffhand().getItem() instanceof ItemBanner) {
-                    bannerStack = player.getHeldItemOffhand();
-                    bannerStack.shrink(1);
+                    // Marcar el mapa como modificado
+                    mapData.markDirty();
+
+                    // Consumir el estandarte
+                    ItemStack bannerStack = null;
+                    if (player.getHeldItemMainhand().getItem() instanceof ItemBanner) {
+                        bannerStack = player.getHeldItemMainhand();
+                        bannerStack.shrink(1);
+                    } else if (player.getHeldItemOffhand().getItem() instanceof ItemBanner) {
+                        bannerStack = player.getHeldItemOffhand();
+                        bannerStack.shrink(1);
+                    }
                 }
             }
         }
