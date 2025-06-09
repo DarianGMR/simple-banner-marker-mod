@@ -33,11 +33,24 @@ public class EventHandler {
                     // Solo en el cliente, mostrar la GUI
                     NBTTagCompound markerData = new NBTTagCompound();
                     markerData.setInteger("color", bannerStack.getMetadata());
-                    // Convertir coordenadas del mundo a coordenadas del mapa
-                    double x = (player.posX - mapData.xCenter) / mapData.scale;
-                    double z = (player.posZ - mapData.zCenter) / mapData.scale;
-                    markerData.setDouble("x", x);
-                    markerData.setDouble("z", z);
+                    markerData.setInteger("dimension", player.dimension);
+
+                    // Convertir coordenadas del mundo a coordenadas del mapa (128x128)
+                    int x = (int)((player.posX - mapData.xCenter) / mapData.scale);
+                    int z = (int)((player.posZ - mapData.zCenter) / mapData.scale);
+
+                    // Asegurarse de que las coordenadas estén dentro del rango del mapa
+                    x = Math.min(127, Math.max(-128, x));
+                    z = Math.min(127, Math.max(-128, z));
+
+                    markerData.setInteger("x", x);
+                    markerData.setInteger("z", z);
+
+                    // Obtener el ID del mapa desde el ItemStack
+                    if (mapStack.hasTagCompound() && mapStack.getTagCompound().hasKey("map", 99)) {
+                        int mapId = mapStack.getTagCompound().getInteger("map");
+                        markerData.setInteger("mapId", mapId);
+                    }
 
                     Minecraft.getMinecraft().displayGuiScreen(new GuiMarkerName(player, bannerStack, markerData));
                 }
