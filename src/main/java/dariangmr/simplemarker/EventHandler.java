@@ -1,14 +1,15 @@
 package dariangmr.simplemarker;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemBanner;
 import net.minecraft.item.ItemMap;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.storage.MapData;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraft.client.Minecraft;
-import net.minecraft.entity.player.EntityPlayer;
 
 public class EventHandler {
 
@@ -29,8 +30,17 @@ public class EventHandler {
             MapData mapData = ((ItemMap)mapStack.getItem()).getMapData(mapStack, player.world);
 
             if (mapData != null) {
+                // Verificar si ya existe un marcador en este mapa
+                String existingMarker = "banner_" + player.getName();
+                if (mapData.mapDecorations.containsKey(existingMarker)) {
+                    if (player.world.isRemote) {
+                        player.sendMessage(new TextComponentString("§cYa tienes un marcador en este mapa"));
+                    }
+                    event.setCanceled(true);
+                    return;
+                }
+
                 if (player.world.isRemote) {
-                    // Solo en el cliente, mostrar la GUI
                     NBTTagCompound markerData = new NBTTagCompound();
                     markerData.setInteger("color", bannerStack.getMetadata());
                     markerData.setInteger("dimension", player.dimension);
