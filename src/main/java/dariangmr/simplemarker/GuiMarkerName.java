@@ -8,7 +8,7 @@ import net.minecraft.item.ItemBanner;
 import net.minecraft.item.ItemMap;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
+import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.storage.MapData;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -87,44 +87,47 @@ public class GuiMarkerName extends GuiScreen {
             if (mapStack != null) {
                 MapData mapData = ((ItemMap)mapStack.getItem()).getMapData(mapStack, player.world);
                 if (mapData != null) {
-                    // Crear el marcador
+                    // Crear identificador único para el marcador
+                    String id = "banner_" + player.getName();
+
+                    // Crear el NBT para el marcador
                     NBTTagCompound decorationNBT = new NBTTagCompound();
-                    String id = "banner_" + System.currentTimeMillis();
                     decorationNBT.setString("id", id);
-                    decorationNBT.setByte("type", (byte)1); // Tipo banner
+                    decorationNBT.setByte("type", (byte)1); // Tipo BANNER = 1 en 1.12.2
+                    decorationNBT.setString("name", name); // Nombre del marcador
+                    decorationNBT.setByte("x", (byte)markerData.getInteger("x"));
+                    decorationNBT.setByte("z", (byte)markerData.getInteger("z"));
                     decorationNBT.setByte("rot", (byte)0);
-                    decorationNBT.setInteger("x", markerData.getInteger("x"));
-                    decorationNBT.setInteger("z", markerData.getInteger("z"));
 
-                    // Asegurarnos que el mapa tiene NBT
-                    if (!mapStack.hasTagCompound()) {
-                        mapStack.setTagCompound(new NBTTagCompound());
-                    }
-
-                    // Obtener o crear la lista de decoraciones
-                    if (!mapStack.getTagCompound().hasKey("Decorations", 9)) {
-                        mapStack.getTagCompound().setTag("Decorations", new NBTTagList());
-                    }
-
-                    // Agregar la decoración a la lista
-                    NBTTagList decorationsList = mapStack.getTagCompound().getTagList("Decorations", 10);
-                    decorationsList.appendTag(decorationNBT);
+                    // Agregar el marcador al mapa
+                    mapData.mapDecorations.put(id, new MapData.MapInfo(decorationNBT));
 
                     // Marcar el mapa como modificado
                     mapData.markDirty();
 
-                    // Consumir el estandarte
-                    ItemStack bannerStack = null;
-                    if (player.getHeldItemMainhand().getItem() instanceof ItemBanner) {
-                        bannerStack = player.getHeldItemMainhand();
-                        bannerStack.shrink(1);
-                    } else if (player.getHeldItemOffhand().getItem() instanceof ItemBanner) {
-                        bannerStack = player.getHeldItemOffhand();
-                        bannerStack.shrink(1);
+                    // Enviar mensaje de éxito al jugador
+                    player.sendMessage(new TextComponentString("§a¡Marcador '" + name + "' creado exitosamente!"));
+
+                    // Consumir el estandarte si no está en modo creativo
+                    if (!player.capabilities.isCreativeMode) {
+                        ItemStack bannerStack = null;
+                        if (player.getHeldItemMainhand().getItem() instanceof ItemBanner) {
+                            bannerStack = player.getHeldItemMainhand();
+                        } else if (player.getHeldItemOffhand().getItem() instanceof ItemBanner) {
+                            bannerStack = player.getHeldItemOffhand();
+                        }
+
+                        if (bannerStack != null) {
+                            bannerStack.shrink(1);
+                        }
                     }
                 }
             }
+        } else {
+            player.sendMessage(new TextComponentString("§cDebes ingresar un nombre para el marcador"));
+            return;
         }
+
         this.mc.displayGuiScreen(null);
     }
 
