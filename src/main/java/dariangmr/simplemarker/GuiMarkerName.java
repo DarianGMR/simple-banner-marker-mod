@@ -8,6 +8,7 @@ import net.minecraft.item.ItemBanner;
 import net.minecraft.item.ItemMap;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.storage.MapData;
 import net.minecraftforge.fml.relauncher.Side;
@@ -87,20 +88,30 @@ public class GuiMarkerName extends GuiScreen {
             if (mapStack != null) {
                 MapData mapData = ((ItemMap)mapStack.getItem()).getMapData(mapStack, player.world);
                 if (mapData != null) {
-                    // Crear identificador único para el marcador
-                    String id = "banner_" + player.getName();
+                    // Asegurarnos que el mapa tiene NBT
+                    if (!mapStack.hasTagCompound()) {
+                        mapStack.setTagCompound(new NBTTagCompound());
+                    }
+
+                    // Obtener o crear la lista de decoraciones
+                    if (!mapStack.getTagCompound().hasKey("Decorations", 9)) {
+                        mapStack.getTagCompound().setTag("Decorations", new NBTTagList());
+                    }
 
                     // Crear el NBT para el marcador
                     NBTTagCompound decorationNBT = new NBTTagCompound();
-                    decorationNBT.setString("id", id);
-                    decorationNBT.setByte("type", (byte)1); // Tipo BANNER = 1 en 1.12.2
-                    decorationNBT.setString("name", name); // Nombre del marcador
+                    decorationNBT.setString("id", "banner_" + player.getName());
+                    decorationNBT.setByte("type", (byte)1); // Tipo BANNER = 1
                     decorationNBT.setByte("x", (byte)markerData.getInteger("x"));
                     decorationNBT.setByte("z", (byte)markerData.getInteger("z"));
                     decorationNBT.setByte("rot", (byte)0);
 
-                    // Agregar el marcador al mapa
-                    mapData.mapDecorations.put(id, new MapData.MapInfo(decorationNBT));
+                    // Agregar la decoración a la lista de decoraciones del mapa
+                    NBTTagList decorations = mapStack.getTagCompound().getTagList("Decorations", 10);
+                    decorations.appendTag(decorationNBT);
+
+                    // Actualizar las decoraciones en el mapa
+                    mapData.updateDecorations(decorations);
 
                     // Marcar el mapa como modificado
                     mapData.markDirty();
